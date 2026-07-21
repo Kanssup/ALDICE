@@ -28,6 +28,25 @@ El sistema está limitado a un ecosistema específico de componentes para garant
 
 > **Nota:** El proyecto asume observabilidad total y un entorno estático determinista. No abarca la intervención física automatizada sobre el hardware.
 
+## 📁 Estructura del Proyecto
+
+```
+ALDICE/
+├── README.md
+├── LICENSE
+├── AGENTS.md
+├── Example/
+│   ├── Circuito_Basico.NET          # Netlist ejemplo (circuito correcto)
+│   ├── Circuito_Basico.PNG
+│   ├── Circuito_Basico_Malo.NET     # Netlist ejemplo (circuito con fallo)
+│   └── Circuito_Basico_Malo.PNG
+└── modulos/
+    ├── __init__.py
+    └── modulo1/                     # Módulo de Extracción y Traducción
+        ├── __init__.py
+        └── netlist_parser.py        # Parser de Netlists Tango → hechos Prolog
+```
+
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
