@@ -79,3 +79,5 @@ python modulos/modulo2/motor_diagnostico.py Example/Prolog/circuito_malo.pl
 ## License
 
 MIT License. See [LICENSE](LICENSE) for details.
+
+## Ejemplo
