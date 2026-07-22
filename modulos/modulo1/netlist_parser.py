@@ -141,16 +141,19 @@ def parse_tango_netlist(file_path: str, output_prolog_path: str) -> str:
 # ============================================================
 if __name__ == "__main__":
     # Rutas de ejemplo (ajustar según entorno)
-    dir_ejemplo = os.path.join(os.path.dirname(__file__), "..", "..", "Example")
+    dir_base = os.path.join(os.path.dirname(__file__), "..", "..", "Example")
+    dir_netlists = os.path.join(dir_base, "Netlists")
+    dir_prolog = os.path.join(dir_base, "Prolog")
 
     ejemplos = [
         ("Circuito_Basico.NET", "circuito_bueno.pl"),
         ("Circuito_Basico_Malo.NET", "circuito_malo.pl"),
+        ("Divisor_Tension.NET", "divisor_tension.pl"),
     ]
 
     for entrada, salida in ejemplos:
-        ruta_entrada = os.path.join(dir_ejemplo, entrada)
-        ruta_salida = os.path.join(dir_ejemplo, salida)
+        ruta_entrada = os.path.join(dir_netlists, entrada)
+        ruta_salida = os.path.join(dir_prolog, salida)
 
         if not os.path.isfile(ruta_entrada):
             print(f"[AVISO] Saltando {entrada} — archivo no encontrado")

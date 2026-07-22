@@ -36,15 +36,21 @@ ALDICE/
 ├── LICENSE
 ├── AGENTS.md
 ├── Example/
-│   ├── Circuito_Basico.NET          # Netlist ejemplo (circuito correcto)
-│   ├── Circuito_Basico.PNG
-│   ├── Circuito_Basico_Malo.NET     # Netlist ejemplo (circuito con fallo)
-│   └── Circuito_Basico_Malo.PNG
+│   ├── Netlists/                  # Archivos de entrada desde Proteus
+│   │   ├── Circuito_Basico.NET
+│   │   ├── Circuito_Basico.PNG
+│   │   ├── Circuito_Basico_Malo.NET
+│   │   ├── Circuito_Basico_Malo.PNG
+│   │   └── Divisor_Tension.NET
+│   └── Prolog/                    # Hechos generados (no se sube a Git)
+│       ├── circuito_bueno.pl
+│       ├── circuito_malo.pl
+│       └── divisor_tension.pl
 └── modulos/
     ├── __init__.py
-    └── modulo1/                     # Módulo de Extracción y Traducción
+    └── modulo1/                   # Módulo de Extracción y Traducción
         ├── __init__.py
-        └── netlist_parser.py        # Parser de Netlists Tango → hechos Prolog
+        └── netlist_parser.py      # Parser de Netlists Tango → hechos Prolog
 ```
 
 ## License
