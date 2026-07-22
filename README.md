@@ -64,15 +64,19 @@ ALDICE/
 git clone https://github.com/Kanssup/ALDICE.git
 cd ALDICE
 
-# 2. Crear entorno virtual e instalar dependencias
+# 2. Instalar SWI-Prolog (requerido por pyswip)
+sudo apt-get update
+sudo apt-get install -y swi-prolog
+
+# 3. Crear entorno virtual e instalar dependencias
 python3 -m venv venv
 source venv/bin/activate
 pip install pyswip
 
-# 3. Generar hechos Prolog desde un Netlist
+# 4. Generar hechos Prolog desde un Netlist
 python modulos/modulo1/netlist_parser.py
 
-# 4. Ejecutar diagnóstico
+# 5. Ejecutar diagnóstico
 python modulos/modulo2/motor_diagnostico.py Example/Prolog/circuito_malo.pl
 ```
 
