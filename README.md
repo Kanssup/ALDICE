@@ -55,6 +55,11 @@ ALDICE/
         ├── __init__.py
         ├── reglas_diagnostico.pl  # Reglas de diagnóstico en Prolog
         └── motor_diagnostico.py   # Conexión Python ↔ Prolog (pyswip)
+    └── modulo3/                   # Módulo de Memoria Analógica
+        ├── __init__.py
+        └── memoria_casos.py       # Historial de casos en JSON
+└── data/                          # Datos generados (no se sube a Git)
+    └── historial.json             # Base de casos conocidos
 ```
 
 ## ⚙️ Instalación
