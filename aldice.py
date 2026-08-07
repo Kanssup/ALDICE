@@ -7,6 +7,8 @@ Integra los tres módulos del sistema:
   2. Motor de Inferencia (motor_diagnostico)
   3. Memoria Analógica (memoria_casos)
 
+Usa `ejecutar_pipeline()` en modo consola o importándolo desde el frontend.
+
 Uso:
     python aldice.py <archivo.NET>
 
@@ -16,7 +18,6 @@ Ejemplo:
 
 import os
 import sys
-import json
 import tempfile
 
 # Agregar raíz del proyecto al path
@@ -32,24 +33,53 @@ from modulos.modulo3.memoria_casos import (
 )
 
 
-def diagnosticar_circuito(ruta_netlist: str) -> None:
+def filtrar_cortocircuitos(resultados: dict) -> list[dict]:
+    """
+    Elimina cortocircuitos genéricos que ya reporta fuentes_cortocircuito.
+
+    Cuando una fuente está en cortocircuito (sus pines 1 y 2 en el mismo
+    nodo), la regla alerta_cortocircuito también la detecta de forma
+    redundante (pin1→pin2 y pin2→pin1). Aquí descartamos esos duplicados,
+    siempre que sea el mismo nodo y el mismo componente.
+
+    Args:
+        resultados: dict de diagnóstico con keys cortocircuitos y
+                    fuentes_cortocircuito.
+
+    Returns:
+        Lista de cortocircuitos sin los cubiertos por fuentes_cortocircuito.
+    """
+    fuentes = {
+        (a["nodo"], a["componente"])
+        for a in resultados.get("fuentes_cortocircuito", [])
+    }
+    return [
+        a
+        for a in resultados.get("cortocircuitos", [])
+        if (a["nodo"], a["componente"]) not in fuentes
+    ]
+
+
+def ejecutar_pipeline(ruta_netlist: str) -> dict:
     """
     Ejecuta el pipeline completo de diagnóstico sobre un netlist.
 
     Flujo:
-        Netlist → Parser → Prolog → Diagnóstico → Memoria → Resultado
+        Netlist → Parser → Prolog → Memoria → Resultado
+
+    Args:
+        ruta_netlist: Ruta al archivo .NET.
+
+    Returns:
+        dict estructurado con toda la información del diagnóstico
+        (componentes, resultados Prolog, firma, casos similares, etc.)
     """
     nombre = os.path.basename(ruta_netlist)
-    print(f"\n{'='*50}")
-    print(f"  ALDICE — Analizando: {nombre}")
-    print(f"{'='*50}\n")
 
     # --- Paso 1: Parsear netlist ---
-    print("[1/4] Parseando netlist...")
     with open(ruta_netlist, "r", encoding="utf-8") as f:
         contenido = f.read()
     componentes, conexiones = parse_bloques(contenido)
-    print(f"      {len(componentes)} componentes, {len(conexiones)} nodos")
 
     # Generar hechos Prolog en archivo temporal
     hechos_pl = generar_prolog(componentes, conexiones)
@@ -58,37 +88,25 @@ def diagnosticar_circuito(ruta_netlist: str) -> None:
     )
     tmp.write(hechos_pl)
     tmp.close()
-    print(f"      Hechos Prolog escritos en archivo temporal")
 
     # --- Paso 2: Diagnosticar con motor Prolog ---
-    print("\n[2/4] Ejecutando diagnóstico Prolog...")
     try:
         resultados = diagnosticar(tmp.name)
     finally:
         os.unlink(tmp.name)
 
-    imprimir_resultados(resultados)
+    # Evitar duplicados entre cortocircuitos y fuentes en cortocircuito
+    resultados["cortocircuitos"] = filtrar_cortocircuitos(resultados)
 
     # --- Paso 3: Buscar en memoria ---
-    print("[3/4] Buscando casos similares en memoria...")
     firma = extraer_firma(resultados, componentes)
     similares = buscar_casos_similares(firma, umbral=0.5)
-
-    if similares:
-        print(f"      Se encontraron {len(similares)} caso(s) similar(es):")
-        for s in similares[:3]:
-            caso = s["caso"]
-            print(f"        - {caso['id']} (similitud: {s['similitud']})")
-            print(f"          {caso['mitigacion']['accion']}")
-    else:
-        print("      No se encontraron casos similares.")
-
-    # --- Paso 4: Guardar si hay fallos ---
     tiene_fallos = any(len(v) > 0 for v in resultados.values())
 
+    # --- Paso 4: Guardar si hay fallos nuevos ---
+    caso_guardado = None
     if tiene_fallos and not similares:
-        print("\n[4/4] Guardando caso nuevo en memoria...")
-        id_caso = guardar_caso(
+        caso_guardado = guardar_caso(
             descripcion=f"Fallo detectado en {nombre}",
             firma=firma,
             mitigacion={
@@ -103,9 +121,49 @@ def diagnosticar_circuito(ruta_netlist: str) -> None:
             componentes=componentes,
             etiquetas=firma["tipo_fallo"],
         )
-        print(f"      Caso guardado como: {id_caso}")
+
+    return {
+        "nombre": nombre,
+        "componentes": componentes,
+        "conexiones": conexiones,
+        "resultados_diagnostico": resultados,
+        "firma": firma,
+        "similares": similares,
+        "caso_guardado": caso_guardado,
+        "tiene_fallos": tiene_fallos,
+    }
+
+
+def diagnosticar_circuito(ruta_netlist: str) -> None:
+    """
+    Wrapper de consola: ejecuta el pipeline e imprime resultados legibles.
+    """
+    nombre = os.path.basename(ruta_netlist)
+    print(f"\n{'='*50}")
+    print(f"  ALDICE — Analizando: {nombre}")
+    print(f"{'='*50}\n")
+
+    if not os.path.isfile(ruta_netlist):
+        print(f"Error: archivo no encontrado — {ruta_netlist}")
+        return
+
+    pipeline = ejecutar_pipeline(ruta_netlist)
+    resultados = pipeline["resultados_diagnostico"]
+
+    imprimir_resultados(resultados)
+
+    # --- Resultados de memoria ---
+    if pipeline["similares"]:
+        print(f"[3/4] Se encontraron {len(pipeline['similares'])} caso(s) similar(es):")
+        for s in pipeline["similares"][:3]:
+            caso = s["caso"]
+            print(f"        - {caso['id']} (similitud: {s['similitud']})")
+            print(f"          {caso['mitigacion']['accion']}")
+    elif pipeline["tiene_fallos"]:
+        print(f"[3/4] No se encontraron casos similares.")
+        print(f"[4/4] Caso guardado como: {pipeline['caso_guardado']}")
     else:
-        print("\n[4/4] No se guardó caso (sin fallos nuevos).")
+        print("[3/4] No se encontraron casos similares (circuito sin fallos).")
 
     print(f"\n{'='*50}")
     print("  Fin del diagnóstico")
@@ -120,8 +178,4 @@ if __name__ == "__main__":
         sys.exit(1)
 
     ruta = sys.argv[1]
-    if not os.path.isfile(ruta):
-        print(f"Error: archivo no encontrado — {ruta}")
-        sys.exit(1)
-
     diagnosticar_circuito(ruta)
