@@ -75,7 +75,7 @@ def _ejecutar_prolog(ruta_hechos: str) -> dict:
     return resultados
 
 
-def ejecutar_pipeline(ruta_netlist: str) -> dict:
+def ejecutar_pipeline(ruta_netlist: str, ruta_historial: str | None = None) -> dict:
     """
     Ejecuta el pipeline completo de diagnóstico sobre un netlist.
 
@@ -88,6 +88,8 @@ def ejecutar_pipeline(ruta_netlist: str) -> dict:
 
     Args:
         ruta_netlist: Ruta al archivo .NET.
+        ruta_historial: Ruta alternativa a la memoria de casos JSON
+            (por defecto, data/historial.json). Útil en pruebas.
 
     Returns:
         dict estructurado con toda la información del diagnóstico
@@ -112,7 +114,7 @@ def ejecutar_pipeline(ruta_netlist: str) -> dict:
     firma = extraer_firma({}, componentes, conexiones)
 
     # --- Paso 2: Consultar memoria primero ---
-    similares = buscar_casos_similares(firma, umbral=0.5)
+    similares = buscar_casos_similares(firma, umbral=0.5, ruta=ruta_historial)
 
     if similares:
         # Fallo conocido: no hace falta el motor; se usan los casos
@@ -148,6 +150,7 @@ def ejecutar_pipeline(ruta_netlist: str) -> dict:
                 componentes=componentes,
                 conexiones=conexiones,
                 etiquetas=firma["tipo_fallo"],
+                ruta=ruta_historial,
             )
 
     dev_alertas = [
