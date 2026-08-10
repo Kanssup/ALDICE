@@ -3,20 +3,26 @@
 ## Project
 
 ALDICE — Fault Diagnosis and Planning System for Electronic Prototypes.
-Hybrid AI: case-based memory (JSON) + PROLOG inference + PDDL planning (STRIPS).
-GUI: PyQt or CustomTkinter. Language: Python.
+Hybrid AI: case-based memory (JSON) + PROLOG inference.
+GUI: Streamlit. Language: Python.
 
 ## Status
 
-Greenfield — no source code, build system, or tests exist yet. Only README, LICENSE, and example data.
+Working prototype. Pipeline memoria-primero in `aldice.py`; case memory
+in `modulos/modulo3/` (split in firma/similitud/mitigaciones/feedback);
+Prolog diagnostics in `modulos/modulo2/`; web UI in `frontend/`.
+Synthetic validation: `tests/sintetico.py`.
 
-## Planned architecture
+## Architecture
 
 1. **Netlist parser** — reads Proteus `.NET` files, builds circuit topology graph
-2. **Case memory** — stores past diagnoses as JSON, analogical matching
-3. **PROLOG engine** — depth-first + backtracking for fault isolation (likely `pyswip`)
-4. **PDDL planner** — STRIPS-based action plan generation (external planner)
-5. **GUI** — load netlists, display diagnosis, present plans
+2. **Case memory** — stores past diagnoses as JSON, analogical matching via
+   structural fingerprint (C1), smart mitigations (C2), user feedback (C3)
+3. **PROLOG engine** — depth-first + backtracking for fault isolation (`pyswip`),
+   only for fault cases not recovered from memory (memoria-primero)
+4. **GUI** — Streamlit, reactive on file upload
+
+**PDDL planner is discarded** (decision D01, see ISSUES.md).
 
 ## Netlist format (`.NET`)
 
@@ -50,6 +56,10 @@ Example netlist pairs (good vs faulty) are in `Example/` but currently untracked
 
 ## When adding code
 
-- No established conventions yet — keep code clean and well-structured from the start
 - Python project: follow PEP 8, use type hints
-- No package manager or dependency files exist yet — set up `pyproject.toml` or `requirements.txt` as needed
+- Dependencies: `pyswip`, `streamlit`; venv in `venv/`
+- Test: `python tests/sintetico.py` (C1–C4, uses temp memory, never touches data/)
+- Header script is `aldice.py`; the public memory API is the facade in
+  `modulos/modulo3/memoria_casos.py` (firma / similitud / mitigaciones /
+  feedback are internal submodules)
+- `data/`, `uploads/`, `venv/`, `Example/Prolog/` are gitignored
