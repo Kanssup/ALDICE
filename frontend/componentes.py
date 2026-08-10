@@ -72,11 +72,15 @@ def alerta_nodo_sobrecargado(alerta: dict) -> None:
 def render_resumen(pipeline: dict) -> None:
     """Muestra métricas resumidas del diagnóstico."""
     resultados = pipeline["resultados_diagnostico"]
+    alertas = [
+        resultados.get(k, [])
+        for k in ("cortocircuitos", "caminos_abiertos", "fuentes_cortocircuito", "nodos_sobrecargados")
+    ]
     if resultados.get("fuente") == "memoria" and pipeline["similares"]:
         alertas_activas = len(pipeline["similares"])
         label = "Casos recuperados"
     else:
-        alertas_activas = sum(len(v) for v in resultados.values())
+        alertas_activas = sum(len(v) for v in alertas)
         label = "Fallos detectados"
 
     c1, c2, c3 = st.columns(3)
