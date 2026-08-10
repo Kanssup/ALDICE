@@ -1,4 +1,6 @@
 __pycache__/
 *.pyc
 Example/Prolog/
+data/
+uploads/
 venv

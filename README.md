@@ -35,26 +35,32 @@ ALDICE/
 ├── README.md
 ├── LICENSE
 ├── AGENTS.md
+├── aldice.py                       # Pipeline unificado (consola)
 ├── Example/
-│   ├── Netlists/                  # Archivos de entrada desde Proteus
+│   ├── Netlists/                   # Archivos de entrada desde Proteus
 │   │   ├── Circuito_Basico.NET
 │   │   ├── Circuito_Basico.PNG
 │   │   ├── Circuito_Basico_Malo.NET
 │   │   ├── Circuito_Basico_Malo.PNG
 │   │   └── Divisor_Tension.NET
-│   └── Prolog/                    # Hechos generados (no se sube a Git)
-│       ├── circuito_bueno.pl
-│       ├── circuito_malo.pl
-│       └── divisor_tension.pl
-└── modulos/
-    ├── __init__.py
-    ├── modulo1/                   # Módulo de Extracción y Traducción
-    │   ├── __init__.py
-    │   └── netlist_parser.py      # Parser de Netlists Tango → hechos Prolog
-    └── modulo2/                   # Módulo de Motor de Inferencia
-        ├── __init__.py
-        ├── reglas_diagnostico.pl  # Reglas de diagnóstico en Prolog
-        └── motor_diagnostico.py   # Conexión Python ↔ Prolog (pyswip)
+│   └── Prolog/                     # Hechos generados (no se sube a Git)
+├── frontend/                       # Interfaz web Streamlit
+│   ├── __init__.py
+│   └── app.py
+├── modulos/
+│   ├── __init__.py
+│   ├── modulo1/                    # Módulo de Extracción y Traducción
+│   │   ├── __init__.py
+│   │   └── netlist_parser.py
+│   ├── modulo2/                    # Módulo de Motor de Inferencia
+│   │   ├── __init__.py
+│   │   ├── reglas_diagnostico.pl
+│   │   └── motor_diagnostico.py
+│   └── modulo3/                    # Módulo de Memoria Analógica
+│       ├── __init__.py
+│       └── memoria_casos.py
+└── data/                           # Datos generados (no se sube a Git)
+    └── historial.json
 ```
 
 ## ⚙️ Instalación
@@ -67,13 +73,13 @@ cd ALDICE
 # 2. Crear entorno virtual e instalar dependencias
 python3 -m venv venv
 source venv/bin/activate
-pip install pyswip
+pip install pyswip streamlit
 
-# 3. Generar hechos Prolog desde un Netlist
-python modulos/modulo1/netlist_parser.py
+# 3. Ejecutar interfaz web
+streamlit run frontend/app.py
 
-# 4. Ejecutar diagnóstico
-python modulos/modulo2/motor_diagnostico.py Example/Prolog/circuito_malo.pl
+# 4. O ejecutar por consola
+python aldice.py Example/Netlists/Circuito_Basico_Malo.NET
 ```
 
 ## License
