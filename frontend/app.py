@@ -2,8 +2,13 @@
 ALDICE — Interfaz Web con Streamlit
 
 Carga un archivo Netlist (.NET) de Proteus, lo guarda en uploads/
-y ejecuta el pipeline completo de diagnóstico (parseo → Prolog → memoria),
-mostrando los resultados con componentes de visualización reutilizables.
+y ejecuta automáticamente el pipeline completo de diagnóstico
+(parseo → memoria → Prolog según necesidad), mostrando los resultados
+con componentes de visualización reutilizables.
+
+El diagnóstico se dispara de forma reactiva en cuanto se sube el
+archivo (no requiere botón). Los resultados se cachean por ruta para
+evitar re-ejecutar el motor solo por re-renders de Streamlit.
 
 Ejecución:
     streamlit run frontend/app.py
@@ -28,6 +33,13 @@ st.set_page_config(
     layout="centered",
 )
 
+
+@st.cache_data
+def _diagnosticar(ruta: str) -> dict:
+    """Ejecuta el pipeline una sola vez por archivo subido."""
+    return ejecutar_pipeline(ruta)
+
+
 st.title("⚡ ALDICE")
 st.subheader("Asistente Lógico de Diagnóstico para Circuitos Electrónicos")
 st.divider()
@@ -45,15 +57,18 @@ if uploaded:
     st.caption(f"Archivo guardado en: `uploads/{uploaded.name}`")
 
     # ============================================
-    # Ejecutar diagnóstico
+    # Diagnóstico reactivo: se ejecuta al subir
     # ============================================
-    if st.button("🔍 Diagnosticar circuito", type="primary"):
-        with st.spinner("Ejecutando diagnóstico (parseo → Prolog → memoria)..."):
-            pipeline = ejecutar_pipeline(ruta_destino)
+    with st.spinner("Ejecutando diagnóstico (parseo → memoria → Prolog)..."):
+        pipeline = _diagnosticar(ruta_destino)
 
-        st.divider()
-        render_resumen(pipeline)
-        render_fallos(pipeline["resultados_diagnostico"])
-        render_soluciones(pipeline)
+    st.divider()
+    render_resumen(pipeline)
+
+    fuente = pipeline["resultados_diagnostico"].get("fuente", "prolog")
+    if fuente == "memoria":
+        st.info("🧠 Fallo recuperado de la memoria de casos (Prolog no ejecutado).")
+    render_fallos(pipeline["resultados_diagnostico"])
+    render_soluciones(pipeline)
 else:
     st.info("Sube un archivo .NET de Proteus para comenzar.")

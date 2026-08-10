@@ -11,6 +11,8 @@ y sigue el mismo esquema de datos que devuelve el pipeline.
 
 import streamlit as st
 
+from modulos.modulo3.memoria_casos import registrar_feedback
+
 # Mapa de colores para prioridades de mitigación
 _PRIORIDAD_COLOR = {
     "critica": ":red",
@@ -70,10 +72,15 @@ def alerta_nodo_sobrecargado(alerta: dict) -> None:
 def render_resumen(pipeline: dict) -> None:
     """Muestra métricas resumidas del diagnóstico."""
     resultados = pipeline["resultados_diagnostico"]
-    total_fallos = sum(len(v) for v in resultados.values())
+    if resultados.get("fuente") == "memoria" and pipeline["similares"]:
+        alertas_activas = len(pipeline["similares"])
+        label = "Casos recuperados"
+    else:
+        alertas_activas = sum(len(v) for v in resultados.values())
+        label = "Fallos detectados"
 
     c1, c2, c3 = st.columns(3)
-    c1.metric("Fallos detectados", total_fallos)
+    c1.metric(label, alertas_activas)
     c2.metric("Casos similares", len(pipeline["similares"]))
     c3.metric("Componentes", len(pipeline["componentes"]))
 
@@ -124,6 +131,22 @@ def render_solucion(caso: dict, similitud: float) -> None:
         if caso.get("etiquetas"):
             etiquetas = ", ".join(f"`{e}`" for e in caso["etiquetas"])
             st.caption(f"Etiquetas: {etiquetas}")
+
+        feedback = caso.get("feedback", {})
+        votos_util = feedback.get("votos_util", 0)
+        votos_no_util = feedback.get("votos_no_util", 0)
+        st.caption(
+            f"Retroalimentación: 👍 {votos_util} · 👎 {votos_no_util}"
+        )
+        c1, c2 = st.columns(2)
+        if c1.button("👍 Sirvió", key=f"util_{caso['id']}"):
+            registrar_feedback(caso["id"], util=True)
+            st.toast("Gracias, se registró la retroalimentación positiva.")
+            st.rerun()
+        if c2.button("👎 No funcionó", key=f"no_util_{caso['id']}"):
+            registrar_feedback(caso["id"], util=False)
+            st.toast("Gracias, se registró la retroalimentación negativa.")
+            st.rerun()
 
 
 def render_soluciones(pipeline: dict) -> None:
