@@ -9,7 +9,8 @@ de arquitectura tomadas, como referencia para futuras sesiones de desarrollo.
 |-------|----|--------|--------|---------------------|
 | — | #4 | Implementación del Sistema de Razonamiento Analógico (Memoria JSON) | `completado` | Memoria de casos con similitud de firma y persistencia en `data/historial.json`. Rama `feat/memory_json`. |
 | — | #6 | Integración y Orquestación de la Arquitectura de IA Híbrida | `superado` | Ver decisión D01. El valor restante se absorbe en el issue de mejoras de memoria. |
-| 2026-08-10 | — | Mejora del razonamiento analógico (C1–C4) | `completado` | Rama `feat/memoria-analogica`. Criterios C1–C4 verificados con `tests/sintetico.py`. |
+| 2026-08-10 | #11 | Mejora del razonamiento analógico — similitud estructural + retroalimentación | `completado` | Rama `feat/memoria-analogica`. Criterios C1–C4 en la sección siguiente. Verificado con `tests/sintetico.py`. |
+| 2026-08-10 | — | Mejora del razonamiento analógico (C1–C4) | `superado` | Absorbido por el issue #11. Rama `feat/memoria-analogica`. Criterios C1–C4 verificados con `tests/sintetico.py`. |
 
 ## Decisión de arquitectura
 
@@ -34,7 +35,7 @@ coherente con el enfoque de IA híbrida definido en el README.
   con el disparo automático al subir el netlist.
 - **Estado final:** `superado`.
 
-## Issue de mejoras — Criterios de aceptación
+## Issue #11 — Criterios de aceptación
 
 - [x] **C1 — Similitud topológica invariante a referencias:** dos netlists con
       igual topología pero referencias renombradas (`v1/r1` vs `vcc/r4`) obtienen

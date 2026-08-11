@@ -68,7 +68,7 @@ if uploaded:
     fuente = pipeline["resultados_diagnostico"].get("fuente", "prolog")
     if fuente == "memoria":
         st.info("🧠 Fallo recuperado de la memoria de casos (Prolog no ejecutado).")
-    render_fallos(pipeline["resultados_diagnostico"])
+    render_fallos(pipeline)
     render_soluciones(pipeline)
 else:
     st.info("Sube un archivo .NET de Proteus para comenzar.")

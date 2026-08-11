@@ -4,6 +4,11 @@
 % de fallos en circuitos electrónicos.
 % ============================================
 
+% Hechos declarados dinámicos para poder retraerlos
+% entre diagnósticos dentro del mismo motor (singleton).
+:- dynamic componente/3.
+:- dynamic conexion/3.
+
 % --------------------------------------------
 % Regla 1: Alerta de Cortocircuito Crítico
 % --------------------------------------------

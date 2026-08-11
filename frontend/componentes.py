@@ -21,6 +21,15 @@ _PRIORIDAD_COLOR = {
     "baja": ":green",
 }
 
+# Mapeo de tipos de fallo (etiquetas de memoria) a presentación
+_FALLO_MEMORIA = {
+    "cortocircuito_fuente": ("🔴", "Fuente en cortocircuito"),
+    "cortocircuito": ("🔴", "Cortocircuito"),
+    "camino_abierto": ("🟡", "Camino abierto"),
+    "nodo_sobrecargado": ("🔵", "Nodo sobrecargado"),
+}
+_TITULO_FALLO_DEFECTO = "Fallo detectado"
+
 
 # ============================================
 # Alertas individuales (un fallo = un componente)
@@ -72,11 +81,15 @@ def alerta_nodo_sobrecargado(alerta: dict) -> None:
 def render_resumen(pipeline: dict) -> None:
     """Muestra métricas resumidas del diagnóstico."""
     resultados = pipeline["resultados_diagnostico"]
+    alertas = [
+        resultados.get(k, [])
+        for k in ("cortocircuitos", "caminos_abiertos", "fuentes_cortocircuito", "nodos_sobrecargados")
+    ]
     if resultados.get("fuente") == "memoria" and pipeline["similares"]:
         alertas_activas = len(pipeline["similares"])
         label = "Casos recuperados"
     else:
-        alertas_activas = sum(len(v) for v in resultados.values())
+        alertas_activas = sum(len(v) for v in alertas)
         label = "Fallos detectados"
 
     c1, c2, c3 = st.columns(3)
@@ -85,11 +98,21 @@ def render_resumen(pipeline: dict) -> None:
     c3.metric("Componentes", len(pipeline["componentes"]))
 
 
-def render_fallos(resultados: dict) -> None:
-    """Renderiza todos los fallos detectados por Prolog."""
+def render_fallos(pipeline: dict) -> None:
+    """Renderiza todos los fallos detectados (Prolog o memoria de casos)."""
     st.markdown("### 🔍 Fallos detectados")
 
-    alguna_alerta = any(len(v) > 0 for v in resultados.values())
+    resultados = pipeline["resultados_diagnostico"]
+    claves_alertas = ("cortocircuitos", "caminos_abiertos", "fuentes_cortocircuito", "nodos_sobrecargados")
+
+    # Fallo recuperado de memoria: Prolog no se ejecutó, así que los
+    # resultados están vacíos; la información vive en los casos similares.
+    if resultados.get("fuente") == "memoria" and pipeline["similares"]:
+        for s in pipeline["similares"]:
+            _render_fallo_memoria(s)
+        return
+
+    alguna_alerta = any(len(resultados.get(k, [])) > 0 for k in claves_alertas)
 
     if not alguna_alerta:
         st.success("✅ No se detectaron fallos en el circuito.")
@@ -108,16 +131,51 @@ def render_fallos(resultados: dict) -> None:
         alerta_nodo_sobrecargado(alerta)
 
 
+def _render_fallo_memoria(simil: dict) -> None:
+    """Renderiza un fallo recuperado de la memoria de casos."""
+    caso = simil["caso"]
+    firma = caso.get("firma", {})
+    tipos = firma.get("tipo_fallo") or caso.get("etiquetas") or ["otro"]
+    componentes = firma.get("componentes_involucrados") or []
+
+    icono, titulo = _FALLO_MEMORIA.get(tipos[0], ("🔴", _TITULO_FALLO_DEFECTO))
+    with st.expander(f"{icono} {titulo}", expanded=True):
+        if componentes:
+            etiquetas = ", ".join(f"`{c}`" for c in componentes)
+            st.write(f"Componente(s) involucrado(s): **{etiquetas}**")
+        else:
+            st.write("Componente(s) no identificado(s) en el caso guardado.")
+        st.caption(
+            f"Recuperado de memoria: **{caso['id']}** "
+            f"(similitud {simil['similitud']:.3f}) · Prolog no ejecutado."
+        )
+        mitigacion = caso.get("mitigacion", {})
+        if mitigacion.get("accion"):
+            st.caption(f"Mitigación: {mitigacion['accion']}")
+
+
+def _votar(caso_id: str, util: bool) -> None:
+    """Callback de los botones de retroalimentación (C3)."""
+    fb = registrar_feedback(caso_id, util=util)
+    st.session_state[f"feedback_votos_{caso_id}"] = fb
+    st.session_state[f"feedback_registrado_{caso_id}"] = True
+
+
 def render_solucion(caso: dict, similitud: float) -> None:
     """
     Renderiza una solución (caso de memoria) con pasos de mitigación.
 
     Compatible con el esquema de historial.json, aunque en el futuro la
     mitigación pudiera provenir de un plan PDDL con la misma estructura.
+
+    Los botones de retroalimentación se deshabilitan tras el primer voto
+    (por sesión) para evitar clics repetidos sobre el mismo caso.
     """
     mitigacion = caso["mitigacion"]
     prioridad = mitigacion.get("prioridad", "media")
     color = _PRIORIDAD_COLOR.get(prioridad, "gray")
+    caso_id = caso["id"]
+    votado = st.session_state.get(f"feedback_registrado_{caso_id}", False)
 
     with st.container(border=True):
         st.markdown(f"**{mitigacion['accion']}**")
@@ -132,21 +190,31 @@ def render_solucion(caso: dict, similitud: float) -> None:
             etiquetas = ", ".join(f"`{e}`" for e in caso["etiquetas"])
             st.caption(f"Etiquetas: {etiquetas}")
 
-        feedback = caso.get("feedback", {})
+        feedback = st.session_state.get(
+            f"feedback_votos_{caso_id}", caso.get("feedback", {})
+        )
         votos_util = feedback.get("votos_util", 0)
         votos_no_util = feedback.get("votos_no_util", 0)
         st.caption(
             f"Retroalimentación: 👍 {votos_util} · 👎 {votos_no_util}"
         )
         c1, c2 = st.columns(2)
-        if c1.button("👍 Sirvió", key=f"util_{caso['id']}"):
-            registrar_feedback(caso["id"], util=True)
-            st.toast("Gracias, se registró la retroalimentación positiva.")
-            st.rerun()
-        if c2.button("👎 No funcionó", key=f"no_util_{caso['id']}"):
-            registrar_feedback(caso["id"], util=False)
-            st.toast("Gracias, se registró la retroalimentación negativa.")
-            st.rerun()
+        c1.button(
+            "👍 Sirvió",
+            key=f"util_{caso_id}",
+            disabled=votado,
+            on_click=_votar,
+            args=(caso_id, True),
+        )
+        c2.button(
+            "👎 No funcionó",
+            key=f"no_util_{caso_id}",
+            disabled=votado,
+            on_click=_votar,
+            args=(caso_id, False),
+        )
+        if votado:
+            st.caption("Gracias, retroalimentación registrada para este caso.")
 
 
 def render_soluciones(pipeline: dict) -> None:
