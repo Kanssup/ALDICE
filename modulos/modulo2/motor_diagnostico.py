@@ -167,7 +167,8 @@ def diagnosticar(ruta_hechos: str) -> dict:
 
 def imprimir_resultados(resultados: dict) -> None:
     """Imprime los resultados del diagnóstico en formato legible."""
-    total = sum(len(v) for v in resultados.values())
+    claves_alertas = ("cortocircuitos", "caminos_abiertos", "fuentes_cortocircuito", "nodos_sobrecargados")
+    total = sum(len(resultados.get(k, [])) for k in claves_alertas)
 
     if total == 0:
         print("\n[OK] No se detectaron fallos en el circuito.\n")
