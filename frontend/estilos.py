@@ -46,10 +46,13 @@ p, li {
   color: var(--texto);
 }
 
-/* Ancho legible del contenido principal */
+/* Ancho legible del contenido principal, centrado */
 [data-testid="stMainBlockContainer"],
 [data-testid="stBlockContainer"] {
   max-width: 1060px;
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 code {
