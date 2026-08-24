@@ -46,13 +46,13 @@ p, li {
   color: var(--texto);
 }
 
-/* Ancho legible del contenido principal, centrado */
-[data-testid="stMainBlockContainer"],
-[data-testid="stBlockContainer"] {
-  max-width: 1060px;
-  width: 100%;
-  margin-left: auto;
-  margin-right: auto;
+/* Ancho legible del contenido principal, centrado.
+   !important: el contenedor lo gestiona CSS-in-JS de Streamlit. */
+[data-testid="stMain"] [data-testid="stMainBlockContainer"],
+[data-testid="stMainBlockContainer"].block-container {
+  max-width: min(1060px, 100%) !important;
+  margin-left: auto !important;
+  margin-right: auto !important;
 }
 
 code {
