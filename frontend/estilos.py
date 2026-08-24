@@ -290,20 +290,62 @@ code {
 /* ---------- Estado vacío / cabecera ---------- */
 .aldice-vacio {
   text-align: center;
-  padding: 64px 20px;
+  padding: 64px 20px 40px;
   color: var(--texto-suave);
 }
 .aldice-vacio .vacio-marca {
   font-family: var(--fuente-mono);
-  font-size: 2rem;
+  font-size: 2.4rem;
   font-weight: 600;
-  letter-spacing: 0.22em;
+  letter-spacing: 0.26em;
   color: var(--cobre);
 }
-.aldice-vacio .vacio-linea {
-  max-width: 430px;
-  margin: 14px auto 0;
-  line-height: 1.55;
+.hero-subtitulo {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--texto);
+  margin-top: 10px;
+  letter-spacing: 0.02em;
+}
+.hero-descripcion {
+  max-width: 560px;
+  margin: 18px auto 0;
+  line-height: 1.65;
+}
+.hero-caps {
+  display: flex;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  max-width: 760px;
+  margin: 28px auto 0;
+}
+.hero-cap {
+  background: var(--superficie);
+  border: 1px solid var(--borde);
+  border-radius: 10px;
+  padding: 14px 16px;
+  width: 220px;
+  text-align: left;
+}
+.hero-cap .cap-titulo {
+  font-family: var(--fuente-mono);
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--cobre);
+  margin-bottom: 6px;
+}
+.hero-cap .cap-texto {
+  font-size: 0.84rem;
+  line-height: 1.5;
+  color: var(--texto-suave);
+}
+.hero-invitacion {
+  font-family: var(--fuente-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  margin-top: 30px;
 }
 .aldice-cabecera {
   display: flex;

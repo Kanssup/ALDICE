@@ -64,12 +64,39 @@ _MARCA = """
 _VACIO = """
 <div class="aldice-vacio">
   <div class="vacio-marca">ALDICE</div>
-  <h3 style="margin-top: 10px">Sube un netlist para comenzar</h3>
-  <p class="vacio-linea">
-    Carga un archivo <code>.NET</code> exportado desde Proteus en el panel lateral.
-    ALDICE lo analiza al instante: busca el fallo en su memoria de casos y,
-    si es inédito, lo deduce con su motor lógico Prolog.
+  <div class="hero-subtitulo">
+    Asistente Lógico de Diagnóstico para Circuitos Electrónicos
+  </div>
+  <p class="hero-descripcion">
+    Analiza netlists exportados desde Proteus (<code>.NET</code>) y localiza
+    fallos en prototipos electrónicos: cortocircuitos, caminos abiertos,
+    fuentes mal conectadas y nodos sobrecargados. Aprende de cada diagnóstico
+    en su memoria de casos y deduce los fallos inéditos con inferencia lógica,
+    proponiendo pasos concretos de reparación.
   </p>
+  <div class="hero-caps">
+    <div class="hero-cap">
+      <div class="cap-titulo">MEMORIA DE CASOS</div>
+      <div class="cap-texto">
+        Reconoce fallos similares a diagnósticos anteriores y recupera su solución al instante.
+      </div>
+    </div>
+    <div class="hero-cap">
+      <div class="cap-titulo">MOTOR PROLOG</div>
+      <div class="cap-texto">
+        Deduce fallos inéditos razonando sobre la topología del circuito.
+      </div>
+    </div>
+    <div class="hero-cap">
+      <div class="cap-titulo">MITIGACIONES</div>
+      <div class="cap-texto">
+        Pasos de reparación priorizados por severidad, validables con tu feedback.
+      </div>
+    </div>
+  </div>
+  <div class="hero-invitacion">
+    Para comenzar, sube un archivo .NET en el panel lateral.
+  </div>
 </div>
 """
 
