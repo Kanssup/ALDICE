@@ -1,0 +1,14 @@
+# Tema ALDICE — dirección "máscara de soldadura" (PCB).
+# Los tokens completos viven en frontend/estilos.py; aquí solo el
+# tema base de Streamlit para que los widgets nativos lo respeten.
+
+[theme]
+base = "dark"
+primaryColor = "#DE8F5F"
+backgroundColor = "#122A20"
+secondaryBackgroundColor = "#1B3A2C"
+textColor = "#EAF2EC"
+font = "sans serif"
+
+[client]
+toolbarMode = "minimal"

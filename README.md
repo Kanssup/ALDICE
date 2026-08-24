@@ -1,20 +1,23 @@
 # Sistema de Diagnóstico y Planificación de Fallos en Prototipos Electrónicos
 
 ## 📋 Descripción del Proyecto
-La aplicación implementa una arquitectura de **Inteligencia Artificial híbrida**. Combina el análisis de casos mediante memoria local, inferencia lógica a través de un motor en **PROLOG**, y generación de planes de acción mediante el estándar **PDDL**. El sistema extrae la topología del circuito desde archivos de texto Netlist (formatos SDF o SPICE) exportados desde el entorno de simulación **Proteus**.
+La aplicación implementa una arquitectura de **Inteligencia Artificial híbrida**. Combina el razonamiento analógico mediante memoria de casos en **JSON**, inferencia lógica a través de un motor en **PROLOG**, y una interfaz web de diagnóstico. El sistema extrae la topología del circuito desde archivos de texto Netlist (formato Tango) exportados desde el entorno de simulación **Proteus**.
+
+> **Decisión de arquitectura (D01):** la generación de planes/acciones se resuelve con la memoria de casos (mitigaciones), descartando motores externos de planificación PDDL/STRIPS. Ver `ISSUES.md`.
 
 ## 🚀 Características Principales
 * **Parsing Automatizado:** Extracción y traducción de la topología de circuitos desde Netlists.
-* **IA Híbrida:** 
-    * **Razonamiento Analógico:** Gestión de historial de fallos a través de archivos **JSON**.
-    * **Razonamiento Deductivo:** Motor de inferencia en **PROLOG** que utiliza búsqueda en profundidad y *backtracking* para aislar causas raíz.
-* **Planificación Automática:** Generación de planes de acción deterministas mediante **PDDL** (modelo STRIPS) para guiar la resolución de fallos.
-* **Interfaz Gráfica:** GUI construida con librerías nativas de Python (PyQt/CustomTkinter).
+* **IA Híbrida:**
+    * **Razonamiento Analógico:** Memoria de casos en **JSON** con huella estructural invariante a renombrado de referencias (C1), mitigaciones inteligentes (C2) y retroalimentación del usuario que pondera búsquedas (C3).
+    * **Razonamiento Deductivo:** Motor de inferencia en **PROLOG** con búsqueda en profundidad y *backtracking* para aislar causas raíz en fallos inéditos.
+* **Pipeline memoria-primero:** se consulta la memoria con la huella estructural; Prolog solo se ejecuta para fallos no recuperados (delegación).
+* **Interfaz Web:** GUI en **Streamlit** con diagnóstico reactivo al subir el netlist.
+* **Validación sintética:** `tests/sintetico.py` verifica C1–C3 con circuitos generados y memoria temporal (C4).
 
 ## 🛠️ Tecnologías Utilizadas
-* **Backend:** Python.
-* **Lógica de Diagnóstico:** PROLOG (integrado mediante librerías bidireccionales).
-* **Planificación:** PDDL (estándar STRIPS).
+* **Backend:** Python (3.10+).
+* **Lógica de Diagnóstico:** PROLOG (SWI-Prolog vía `pyswip`).
+* **Interfaz:** Streamlit.
 * **Simulación:** Proteus (exportación de Netlists).
 * **Persistencia:** JSON (aprendizaje analógico).
 
@@ -35,31 +38,42 @@ ALDICE/
 ├── README.md
 ├── LICENSE
 ├── AGENTS.md
+├── ISSUES.md                        # Registro de issues y decisiones (D01)
+├── aldice.py                        # Pipeline memoria-primero (consola y web)
 ├── Example/
-│   ├── Netlists/                  # Archivos de entrada desde Proteus
+│   ├── Netlists/                    # Archivos de entrada desde Proteus
 │   │   ├── Circuito_Basico.NET
 │   │   ├── Circuito_Basico.PNG
 │   │   ├── Circuito_Basico_Malo.NET
 │   │   ├── Circuito_Basico_Malo.PNG
 │   │   └── Divisor_Tension.NET
-│   └── Prolog/                    # Hechos generados (no se sube a Git)
-│       ├── circuito_bueno.pl
-│       ├── circuito_malo.pl
-│       └── divisor_tension.pl
-└── modulos/
-    ├── __init__.py
-    ├── modulo1/                   # Módulo de Extracción y Traducción
-    │   ├── __init__.py
-    │   └── netlist_parser.py      # Parser de Netlists Tango → hechos Prolog
-    └── modulo2/                   # Módulo de Motor de Inferencia
-        ├── __init__.py
-        ├── reglas_diagnostico.pl  # Reglas de diagnóstico en Prolog
-        └── motor_diagnostico.py   # Conexión Python ↔ Prolog (pyswip)
-    └── modulo3/                   # Módulo de Memoria Analógica
-        ├── __init__.py
-        └── memoria_casos.py       # Historial de casos en JSON
-└── data/                          # Datos generados (no se sube a Git)
-    └── historial.json             # Base de casos conocidos
+│   └── Prolog/                      # Hechos generados (no se sube a Git)
+├── frontend/                        # Interfaz web Streamlit
+│   ├── __init__.py
+│   ├── app.py                       # App reactiva
+│   └── componentes.py               # Widgets reutilizables de visualización
+├── modulos/
+│   ├── __init__.py
+│   ├── modulo1/                     # Módulo de Extracción y Traducción
+│   │   ├── __init__.py
+│   │   └── netlist_parser.py
+│   ├── modulo2/                     # Módulo de Motor de Inferencia
+│   │   ├── __init__.py
+│   │   ├── reglas_diagnostico.pl
+│   │   └── motor_diagnostico.py
+│   └── modulo3/                     # Módulo de Memoria Analógica
+│       ├── __init__.py
+│       ├── memoria_casos.py         # Fachada pública (API estable)
+│       ├── persistencia.py          # IO del historial JSON
+│       ├── firma.py                 # C1: huella estructural
+│       ├── similitud.py             # C1: métrica invariante a referencias
+│       ├── mitigaciones.py          # C2: recomendaciones por defecto
+│       └── feedback.py              # C3: votos de utilidad intra-caso
+├── tests/
+│   └── sintetico.py                 # C4: validación con circuitos generados
+├── data/                            # Datos generados (no se sube a Git)
+│   └── historial.json
+└── uploads/                         # Netlists subidos por la web (no en Git)
 ```
 
 ## ⚙️ Instalación
@@ -69,16 +83,22 @@ ALDICE/
 git clone https://github.com/Kanssup/ALDICE.git
 cd ALDICE
 
-# 2. Crear entorno virtual e instalar dependencias
+# 2. Requisito del sistema: SWI-Prolog
+sudo apt-get install -y swi-prolog
+
+# 3. Crear entorno virtual e instalar dependencias
 python3 -m venv venv
 source venv/bin/activate
-pip install pyswip
+pip install pyswip streamlit
 
-# 3. Generar hechos Prolog desde un Netlist
-python modulos/modulo1/netlist_parser.py
+# 4. Ejecutar interfaz web (diagnóstico reactivo al subir el archivo)
+streamlit run frontend/app.py
 
-# 4. Ejecutar diagnóstico
-python modulos/modulo2/motor_diagnostico.py Example/Prolog/circuito_malo.pl
+# 5. O ejecutar por consola
+python aldice.py Example/Netlists/Circuito_Basico_Malo.NET
+
+# 6. Validación sintética del razonamiento analógico (C1–C4)
+python tests/sintetico.py
 ```
 
 ## License
