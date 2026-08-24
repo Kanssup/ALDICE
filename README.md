@@ -24,10 +24,6 @@ La aplicación implementa una arquitectura de **Inteligencia Artificial híbrida
 ## 🔧 Alcance Técnico
 El sistema está limitado a un ecosistema específico de componentes para garantizar la viabilidad del diagnóstico:
 * Circuitos electrónicos resistivos básicos.
-* Microcontroladores (familias Arduino Uno, Arduino Mega y ESP32).
-* Protocolos de comunicación (conflictos en buses I2C).
-* Actuadores de potencia (módulos de relés).
-* Sensores analógicos y digitales básicos.
 
 > **Nota:** El proyecto asume observabilidad total y un entorno estático determinista. No abarca la intervención física automatizada sobre el hardware.
 
